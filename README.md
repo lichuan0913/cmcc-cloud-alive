@@ -78,6 +78,18 @@ node bin/cmcc-cloud-alive.js protocol-probe <userServiceId> --tls-probe 1
 node bin/cmcc-cloud-alive.js cag-plan <userServiceId>
 ```
 
+The SMS login flow is intentionally aligned with the previous `yidongyun`
+family-edition SOHO API implementation. It is reused only to obtain and cache
+the account login state needed by the protocol work; it is not the keepalive
+mechanism.
+
+If a legacy login already exists, import it instead of requesting another SMS
+code:
+
+```bash
+node bin/cmcc-cloud-alive.js import-legacy-state
+```
+
 Run the HTTP heartbeat candidate once:
 
 ```bash
@@ -115,6 +127,18 @@ socket commands.
 `--tunnel-id` are supplied from a capture, `connect_info` datagram summaries
 offline. It does not send packets. Hex output is hidden unless `--show-hex 1`
 is explicitly passed.
+
+Extract reusable CAG handshake parameters from a capture:
+
+```bash
+node bin/cmcc-cloud-alive.js extract-cag-handshake /path/to/cag.pcap
+```
+
+The output includes `cagPlanArgs`. These values can be passed back to
+`cag-plan`, including `--local-key-sequence` and `--connect-info-sequence`, to
+reproduce packet summaries from observed family-edition Linux CAG traffic. The
+observed `connect_info` control word is also exposed as
+`--connect-info-control-word` for capture-to-plan comparisons.
 
 Use this as the final proof gate after the VM is already powered/running:
 

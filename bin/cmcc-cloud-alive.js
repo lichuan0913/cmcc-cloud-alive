@@ -31,7 +31,7 @@ function usage() {
   cmcc-cloud-alive cloud-status [userServiceId]
   cmcc-cloud-alive firm-auth <userServiceId>
   cmcc-cloud-alive protocol-probe <userServiceId> [--tls-probe 1] [--timeout-ms 5000]
-  cmcc-cloud-alive cag-plan <userServiceId> [--random-key HEX] [--server-key HEX] [--tunnel-id HEX] [--show-hex 0]
+  cmcc-cloud-alive cag-plan <userServiceId> [--random-key HEX] [--server-key HEX] [--tunnel-id HEX] [--local-key-sequence N] [--connect-info-sequence N] [--connect-info-control-word N] [--show-hex 0]
   cmcc-cloud-alive heartbeat <userServiceId>
   cmcc-cloud-alive heartbeat-loop <userServiceId> [--interval-ms 30000] [--stop-on-error 0]
   cmcc-cloud-alive verify-http <userServiceId> [--duration-ms 120000] [--interval-ms 30000] [--wait-powered-ms 0] [--require-sleep-proof 0]
@@ -39,6 +39,7 @@ function usage() {
   cmcc-cloud-alive import-legacy-state
   cmcc-cloud-alive state
   cmcc-cloud-alive analyze-cag <pcap> [--limit N]
+  cmcc-cloud-alive extract-cag-handshake <pcap> [--from SEC.USEC] [--to SEC.USEC]
   cmcc-cloud-alive analyze-loopback <pcap>
   cmcc-cloud-alive test
 
@@ -184,8 +185,11 @@ async function main(argv = process.argv.slice(2)) {
       clientKey: readOption(args, '--client-key', undefined),
       traceId: readOption(args, '--trace-id', undefined),
       spanId: readOption(args, '--span-id', undefined),
+      localKeySequence: readOption(args, '--local-key-sequence', undefined),
       serverKey: readOption(args, '--server-key', undefined),
       tunnelId: readOption(args, '--tunnel-id', undefined),
+      connectInfoSequence: readOption(args, '--connect-info-sequence', undefined),
+      controlWord: readOption(args, '--connect-info-control-word', undefined),
       aesFlags: readOption(args, '--aes-flags', undefined),
       showHex: readOption(args, '--show-hex', '0'),
     });
@@ -261,6 +265,7 @@ async function main(argv = process.argv.slice(2)) {
     return;
   }
   if (cmd === 'analyze-cag') return runNodeScript('analyze-cag-transport.js', args);
+  if (cmd === 'extract-cag-handshake') return runNodeScript('extract-cag-handshake.js', args);
   if (cmd === 'analyze-loopback') return runNodeScript('analyze-loopback-spice.js', args);
   if (cmd === 'verify-http') return runNodeScript('verify-http-heartbeat.js', args);
   if (cmd === 'test') return runNodeScript('../tests/protocol-codec.test.js', []);

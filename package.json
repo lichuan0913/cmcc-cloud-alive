@@ -9,7 +9,7 @@
     "cmcc-cloud-alive": "bin/cmcc-cloud-alive.js"
   },
   "scripts": {
-    "check": "node --check bin/cmcc-cloud-alive.js && node --check scripts/analyze-cag-transport.js && node --check scripts/analyze-loopback-spice.js && node --check scripts/verify-http-heartbeat.js && node --check lib/family-api.js && node --check lib/protocol/cag-handshake-plan.js && node --check lib/protocol/zte-cag.js && node --check lib/protocol/spice.js && node --check lib/protocol/local-spice.js",
+    "check": "node --check bin/cmcc-cloud-alive.js && node --check scripts/analyze-cag-transport.js && node --check scripts/analyze-loopback-spice.js && node --check scripts/extract-cag-handshake.js && node --check scripts/verify-http-heartbeat.js && node --check lib/family-api.js && node --check lib/protocol/cag-handshake-plan.js && node --check lib/protocol/zte-cag.js && node --check lib/protocol/spice.js && node --check lib/protocol/local-spice.js",
     "test": "npm run check && node tests/protocol-codec.test.js && node tests/family-api.test.js"
   },
   "engines": {

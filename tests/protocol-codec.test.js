@@ -501,6 +501,17 @@ assert.strictEqual(offlineHandshakePlan.safe.sendsPackets, false);
 assert.strictEqual(offlineHandshakePlan.localKey.datagram.length, observedControlPayload.length);
 assert.strictEqual(offlineHandshakePlan.connectInfo.payloadLength, 0xdc);
 assert.strictEqual(offlineHandshakePlan.connectInfo.usernamePresent, true);
+const offlineConnectInfo = createConnectInfoDatagram({
+  vmcPort: observedConnectInfo.port,
+  vmcIp: observedConnectInfo.ip,
+  vmId: observedConnectInfo.vmId,
+  vmUserName: observedConnectInfo.username,
+}, {
+  randomKey: '0x2f4bd52a',
+  serverKey: `0x${observedServerKeyPacket.keyInfo.key.toString(16)}`,
+  tunnelId: '0x34db0787',
+});
+assert.strictEqual(parseZteCagDatagram(offlineConnectInfo.datagram).udpControl.header.controlWord, 0);
 
 const zteReply = parseZteCagConnectReply(Buffer.concat([Buffer.from('c8000000', 'hex'), Buffer.alloc(32)]));
 assert.strictEqual(zteReply.ok, true);
