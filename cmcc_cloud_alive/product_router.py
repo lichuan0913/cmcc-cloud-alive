@@ -118,8 +118,14 @@ _SENSITIVE_KEYS = {"token", "password", "connectStr", "vmPassword", "scAuthCode"
 
 
 def redacted_firm_auth_summary(auth):
-    """Presence-only summary; never outputs raw token/password/connectStr."""
+    """Presence-only summary; never outputs raw token/password/connectStr.
+
+    P6-006: reports outer (CAG endpoint) / inner (connectStr) presence as
+    booleans only — never the values themselves.
+    """
     zte = extract_zte_fields(auth)
+    outer_present = bool(zte["cagIp"]) and _truthy_port(zte["cagPort"])
+    inner_present = bool(auth.get("connectStr") or auth.get("connectStrEnc") or "")
     return {
         "spuCode": auth.get("spuCode") or "",
         "vmType": auth.get("vmType"),
@@ -127,7 +133,9 @@ def redacted_firm_auth_summary(auth):
         "vmIdPresent": bool(zte["vmId"]),
         "vmCredentialPresent": bool(zte["vmUserName"]) and bool(zte["vmPassword"]),
         "vmcEndpointPresent": bool(zte["vmcIp"]) and _truthy_port(zte["vmcPort"]),
-        "cagEndpointPresent": bool(zte["cagIp"]) and _truthy_port(zte["cagPort"]),
+        "cagEndpointPresent": outer_present,
+        "outerPresent": outer_present,
+        "innerPresent": inner_present,
     }
 
 
