@@ -432,7 +432,7 @@ def _bind_library(lib):
 
 def _error_info(lib, code):
     try:
-        fn = getattr(lib, "ZIME_GetInfoByErrno")
+        fn = lib.ZIME_GetInfoByErrno
     except AttributeError:
         return None
     try:
