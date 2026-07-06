@@ -13,6 +13,7 @@ import os
 import socket
 import struct
 import time
+import logging
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
@@ -369,7 +370,8 @@ def RawMainHandshake(conn, key: str, vmid: str, linkUUID: Optional[bytes], trace
 
 
 def keepaliveRawSpiceLoop(conn, interval: float = 25.0, stop_after: Optional[float] = None,
-                          heartbeat_hz: float = 21.0) -> dict:
+                          heartbeat_hz: float = 21.0,
+                          display_links: Optional[list] = None) -> dict:
     """Read/auto-reply raw messages and periodically send display/input init.
 
     This is the Python route's conservative product keepalive loop: it preserves
@@ -394,6 +396,8 @@ def keepaliveRawSpiceLoop(conn, interval: float = 25.0, stop_after: Optional[flo
     next_hb = started
     hb_counter = 0
     hb_seq = 0
+    hb_burst_start = started
+    hb_burst_frames = 0
     # Keep the read timeout short enough to honour the heartbeat cadence.
     if hb_interval:
         read_timeout = min(hb_interval, 1.0)
@@ -423,13 +427,29 @@ def keepaliveRawSpiceLoop(conn, interval: float = 25.0, stop_after: Optional[flo
         if hb_interval and now >= next_hb:
             try:
                 suffix = state.LastSuffix if state.LastSuffix else b"\x00" * 5
-                conn.sendall(rawMessageWithPrefix(state.nextSerial(),
-                                                  BuildZTERawDisplayHeartbeat(hb_counter)) + suffix)
+                hb_msg = rawMessageWithPrefix(state.nextSerial(),
+                                              BuildZTERawDisplayHeartbeat(hb_counter)) + suffix
+                # Send on display sub-links (link 5/7) when available;
+                # fall back to the main link for backward compatibility.
+                targets = display_links if display_links else [conn]
+                for link in targets:
+                    link.sendall(hb_msg)
                 counters["heartbeats"] += 1
-                counters["display_type3_heartbeat_frames"] += 1
+                counters["display_type3_heartbeat_frames"] += len(targets)
                 hb_seq += 1
                 if hb_seq % 5 == 0:
                     hb_counter = (hb_counter + 250) & 0xFFFFFFFF
+                # Burst-window logging: every 60 s report frame count / approx Hz.
+                hb_burst_frames += len(targets)
+                if now - hb_burst_start >= 60.0:
+                    burst_dur = now - hb_burst_start
+                    approx_hz = hb_burst_frames / burst_dur if burst_dur > 0 else 0.0
+                    logging.getLogger(__name__).info(
+                        "display type=3 heartbeat burst: frames=%d duration=%.1fs "
+                        "approx_hz=%.1f channel=display type=3",
+                        hb_burst_frames, burst_dur, approx_hz)
+                    hb_burst_start = now
+                    hb_burst_frames = 0
             except Exception:
                 counters["errors"] += 1
                 break

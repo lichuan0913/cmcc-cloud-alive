@@ -71,5 +71,31 @@ class TestHeartbeatInjection(unittest.TestCase):
         self.assertEqual(counters['heartbeats'], 0)
 
 
+    def test_heartbeat_sent_to_display_links(self):
+        """When display_links provided, heartbeats go to each display sub-link, not conn."""
+        link_a = FakeConn()
+        link_b = FakeConn()
+        conn = FakeConn()
+        with mock.patch.object(zrs.RawState, 'ReadMessage', side_effect=TimeoutError), \
+             mock.patch.object(zrs.RawState, 'AutoReply', return_value=False):
+            counters = zrs.keepaliveRawSpiceLoop(
+                conn, interval=999, stop_after=0.3, heartbeat_hz=21.0,
+                display_links=[link_a, link_b])
+        # Both display links should receive heartbeats
+        self.assertGreater(counters['heartbeats'], 0)
+        # display_type3_heartbeat_frames counts per-link sends (2 links)
+        self.assertEqual(counters['display_type3_heartbeat_frames'],
+                         counters['heartbeats'] * 2)
+        # conn (main link) should NOT receive type=3 heartbeats (only init msgs)
+        conn_hb = sum(1 for raw in conn.sent
+                      if len(raw) >= 10 and struct.unpack_from('<H', raw, 8)[0] == 3)
+        self.assertEqual(conn_hb, 0)
+        # Both display links should have received at least one type=3
+        for link in (link_a, link_b):
+            hb_count = sum(1 for raw in link.sent
+                           if len(raw) >= 10 and struct.unpack_from('<H', raw, 8)[0] == 3)
+            self.assertGreater(hb_count, 0)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

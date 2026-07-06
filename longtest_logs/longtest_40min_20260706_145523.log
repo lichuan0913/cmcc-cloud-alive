@@ -252,3 +252,95 @@
 [2026-07-06 15:21:27]   >>> 已发送 display/input init 流量 (ticks=1) <<<
 [2026-07-06 15:21:27] ########## 保活burst#6 结束: 累计保活62.9s, 共10次连接, 总ticks=10 ##########
 [2026-07-06 15:21:52] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.1s)
+[2026-07-06 15:22:53] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.1s)
+[2026-07-06 15:23:55] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.2s)
+[2026-07-06 15:24:56] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.3s)
+[2026-07-06 15:25:24] ########## 保活burst#7 开始 (目标累计60s屏幕/display流量) ##########
+[2026-07-06 15:25:24]   --- 保活连接#7.1 开始: 已累计0.0s, 剩余60.0s ---
+[2026-07-06 15:25:31]   --- 保活连接#7.1 结束: 耗时7.3s, 累计7.3s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:31]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:31]   --- 保活连接#7.2 开始: 已累计7.3s, 剩余52.7s ---
+[2026-07-06 15:25:36]   --- 保活连接#7.2 结束: 耗时4.7s, 累计11.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:36]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:36]   --- 保活连接#7.3 开始: 已累计11.9s, 剩余48.1s ---
+[2026-07-06 15:25:40]   --- 保活连接#7.3 结束: 耗时4.0s, 累计15.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:40]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:40]   --- 保活连接#7.4 开始: 已累计15.9s, 剩余44.1s ---
+[2026-07-06 15:25:44]   --- 保活连接#7.4 结束: 耗时4.2s, 累计20.1s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:44]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:44]   --- 保活连接#7.5 开始: 已累计20.1s, 剩余39.9s ---
+[2026-07-06 15:25:49]   --- 保活连接#7.5 结束: 耗时4.8s, 累计24.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:49]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:49]   --- 保活连接#7.6 开始: 已累计24.9s, 剩余35.1s ---
+[2026-07-06 15:25:55]   --- 保活连接#7.6 结束: 耗时5.8s, 累计30.7s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 4, 'display_type3_heartbeat_frames': 4, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:25:55]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:25:55]   --- 保活连接#7.7 开始: 已累计30.7s, 剩余29.3s ---
+[2026-07-06 15:25:57] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.0s)
+[2026-07-06 15:26:00]   --- 保活连接#7.7 结束: 耗时5.7s, 累计36.4s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:00]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:00]   --- 保活连接#7.8 开始: 已累计36.4s, 剩余23.6s ---
+[2026-07-06 15:26:07]   --- 保活连接#7.8 结束: 耗时6.5s, 累计42.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:07]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:07]   --- 保活连接#7.9 开始: 已累计42.9s, 剩余17.1s ---
+[2026-07-06 15:26:11]   --- 保活连接#7.9 结束: 耗时4.3s, 累计47.2s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:11]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:11]   --- 保活连接#7.10 开始: 已累计47.2s, 剩余12.8s ---
+[2026-07-06 15:26:17]   --- 保活连接#7.10 结束: 耗时5.9s, 累计53.1s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:17]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:17]   --- 保活连接#7.11 开始: 已累计53.1s, 剩余6.9s ---
+[2026-07-06 15:26:21]   --- 保活连接#7.11 结束: 耗时4.2s, 累计57.3s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:21]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:21]   --- 保活连接#7.12 开始: 已累计57.3s, 剩余2.7s ---
+[2026-07-06 15:26:28]   --- 保活连接#7.12 结束: 耗时6.4s, 累计63.7s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:26:28]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:26:28] ########## 保活burst#7 结束: 累计保活63.7s, 共12次连接, 总ticks=12 ##########
+[2026-07-06 15:26:58] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (0.9s)
+[2026-07-06 15:27:59] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (0.9s)
+[2026-07-06 15:29:00] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.2s)
+[2026-07-06 15:30:01] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.2s)
+[2026-07-06 15:30:24] ########## 保活burst#8 开始 (目标累计60s屏幕/display流量) ##########
+[2026-07-06 15:30:24]   --- 保活连接#8.1 开始: 已累计0.0s, 剩余60.0s ---
+[2026-07-06 15:30:29]   --- 保活连接#8.1 结束: 耗时4.9s, 累计4.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:29]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:29]   --- 保活连接#8.2 开始: 已累计4.9s, 剩余55.1s ---
+[2026-07-06 15:30:35]   --- 保活连接#8.2 结束: 耗时5.5s, 累计10.4s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:35]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:35]   --- 保活连接#8.3 开始: 已累计10.4s, 剩余49.6s ---
+[2026-07-06 15:30:39]   --- 保活连接#8.3 结束: 耗时4.5s, 累计14.9s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:39]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:39]   --- 保活连接#8.4 开始: 已累计14.9s, 剩余45.1s ---
+[2026-07-06 15:30:46]   --- 保活连接#8.4 结束: 耗时7.1s, 累计22.0s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:46]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:46]   --- 保活连接#8.5 开始: 已累计22.0s, 剩余38.0s ---
+[2026-07-06 15:30:52]   --- 保活连接#8.5 结束: 耗时6.2s, 累计28.2s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:52]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:52]   --- 保活连接#8.6 开始: 已累计28.2s, 剩余31.8s ---
+[2026-07-06 15:30:57]   --- 保活连接#8.6 结束: 耗时4.7s, 累计33.0s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:30:57]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:30:57]   --- 保活连接#8.7 开始: 已累计33.0s, 剩余27.0s ---
+[2026-07-06 15:31:02] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.2s)
+[2026-07-06 15:31:03]   --- 保活连接#8.7 结束: 耗时6.1s, 累计39.1s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:03]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:03]   --- 保活连接#8.8 开始: 已累计39.1s, 剩余20.9s ---
+[2026-07-06 15:31:07]   --- 保活连接#8.8 结束: 耗时3.9s, 累计43.0s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:07]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:07]   --- 保活连接#8.9 开始: 已累计43.0s, 剩余17.0s ---
+[2026-07-06 15:31:13]   --- 保活连接#8.9 结束: 耗时5.7s, 累计48.6s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 2, 'display_type3_heartbeat_frames': 2, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:13]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:13]   --- 保活连接#8.10 开始: 已累计48.6s, 剩余11.4s ---
+[2026-07-06 15:31:17]   --- 保活连接#8.10 结束: 耗时4.6s, 累计53.3s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:17]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:17]   --- 保活连接#8.11 开始: 已累计53.3s, 剩余6.7s ---
+[2026-07-06 15:31:24]   --- 保活连接#8.11 结束: 耗时6.3s, 累计59.6s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:24]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:24]   --- 保活连接#8.12 开始: 已累计59.6s, 剩余0.4s ---
+[2026-07-06 15:31:29]   --- 保活连接#8.12 结束: 耗时5.2s, 累计64.8s, ok=True, ticks=1, counters={'messages': 0, 'autoReplies': 0, 'ticks': 1, 'errors': 1, 'heartbeats': 1, 'display_type3_heartbeat_frames': 1, 'heartbeat_hz': 21.0} ---
+[2026-07-06 15:31:29]   >>> 已发送 display/input init 流量 (ticks=1) <<<
+[2026-07-06 15:31:29] ########## 保活burst#8 结束: 累计保活64.8s, 共12次连接, 总ticks=12 ##########
+[2026-07-06 15:32:04] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.2s)
+[2026-07-06 15:33:04] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (0.9s)
+[2026-07-06 15:34:05] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.1s)
+[2026-07-06 15:35:07] [状态检测] vmStatus=1 vmStatusShow=运行中 running=? (1.1s)
+[2026-07-06 15:35:24] ########## [40min] 长测结束 ##########
+[2026-07-06 15:35:24] [汇总] 状态检测共41次
+[2026-07-06 15:35:24] [汇总] 关机/非运行次数=0

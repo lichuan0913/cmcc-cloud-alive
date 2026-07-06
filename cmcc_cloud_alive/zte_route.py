@@ -563,6 +563,9 @@ def run_zte_keepalive_session(firm: ZTEFirmAuth, connect_str: str, *,
     sub_links, _authed = setup_zte_subchannels(
         mux, cp, main_link, raw_result.SpiceSessionID,
     )
+    # Display sub-links (link 5 & 7) receive the type=3 heartbeat at ~21 Hz.
+    display_links = [link for lid, link in sub_links.items()
+                     if _ZTE_SUBCHANNEL_INIT.get(lid) is BuildZTERawDisplayInit]
     stop_event = threading.Event()
     sub_threads = []
     for link_id, link in sub_links.items():
@@ -578,7 +581,8 @@ def run_zte_keepalive_session(firm: ZTEFirmAuth, connect_str: str, *,
 
     # --- P9: main keepalive loop (blocks for *duration* seconds) ---
     try:
-        counters = keepaliveRawSpiceLoop(main_link, interval=25.0, stop_after=duration)
+        counters = keepaliveRawSpiceLoop(main_link, interval=25.0, stop_after=duration,
+                                         display_links=display_links)
     finally:
         stop_event.set()
         for t in sub_threads:
