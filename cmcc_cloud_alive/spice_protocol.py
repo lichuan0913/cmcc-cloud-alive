@@ -1,6 +1,7 @@
 """SPICE and Chuanyun protocol codecs for the native desktop route."""
 
 import hashlib
+import os
 import struct
 
 
@@ -245,7 +246,9 @@ def rsa_oaep_encrypt(message, public_key_der, label=b"", seed=None, hash_name="s
     if len(message) > k - 2 * h_len - 2:
         raise ValueError("message too long for RSA-OAEP key")
     if seed is None:
-        seed = hashlib.sha256(message + public_key_der).digest()[:h_len]
+        # Align with Go rsa.EncryptOAEP(sha1, rand.Reader, ...) which uses
+        # a cryptographically random seed each time (non-deterministic).
+        seed = os.urandom(h_len)
     seed = bytes(seed)
     if len(seed) != h_len:
         raise ValueError(f"OAEP seed must be {h_len} bytes")
