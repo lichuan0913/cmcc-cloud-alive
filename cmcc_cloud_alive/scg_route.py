@@ -482,7 +482,7 @@ def _handle_display_payload(sock: socket.socket, sid: int, channel_id: int, payl
 def spice_handshake(sock: socket.socket, max_wait: float = 12.0) -> Dict[str, object]:
     first = recv_trunk_frame(sock, 3.0)
     sid = first.field1
-    spice_session_id = first.field2 & 0xFFFFFFFF
+    spice_session_id = 0  # initialized 0, only set from MAIN_INIT (line 594), matching Go's SpiceHandshake
 
     connected: List[int] = []
     progress = sp.create_protocol_progress()
@@ -617,7 +617,7 @@ def spice_handshake(sock: socket.socket, max_wait: float = 12.0) -> Dict[str, ob
         "spice_session_id": spice_session_id,
         "connected_channels": [CHANNEL_NAMES.get(c, str(c)) for c in connected],
         "progress": progress,
-        "spice_ok": sp.is_protocol_keepalive_success(progress) or CHANNEL_DISPLAY in connected,
+        "spice_ok": bool(spice_session_id),
         "stats": stats,
     }
 
