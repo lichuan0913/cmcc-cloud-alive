@@ -79,17 +79,42 @@
     } catch (_) {}
   }
 
+  function unwrapApiError(raw) {
+    // BE api_error shape: { ok:false, error:{ code, message, nextStep? } }
+    // Also accept flat { code, message } and thrown Error with .payload/.data
+    if (!raw || typeof raw !== "object") return { code: "", message: "", nextStep: "" };
+    const nested =
+      (raw.error && typeof raw.error === "object" && raw.error) ||
+      (raw.payload && raw.payload.error && typeof raw.payload.error === "object" && raw.payload.error) ||
+      (raw.data && raw.data.error && typeof raw.data.error === "object" && raw.data.error) ||
+      null;
+    const src = nested || raw;
+    const codeRaw = src.code || src.error_code || (!nested && typeof raw.error === "string" ? raw.error : "") || "";
+    const code = typeof codeRaw === "string" || typeof codeRaw === "number" ? String(codeRaw) : "";
+    const message =
+      (typeof src.message === "string" && src.message) ||
+      (typeof src.detail === "string" && src.detail) ||
+      (typeof src.error_message === "string" && src.error_message) ||
+      (typeof raw.message === "string" && raw.message) ||
+      "";
+    const nextStep =
+      src.nextStep ||
+      src.next_step ||
+      raw.nextStep ||
+      raw.next_step ||
+      (raw.payload && (raw.payload.nextStep || raw.payload.next_step)) ||
+      (raw.data && (raw.data.nextStep || raw.data.next_step)) ||
+      "";
+    return { code: code, message: message, nextStep: nextStep || "" };
+  }
+
   function humanError(err, fallback) {
     if (!err) return fallback || "操作失败";
     if (typeof err === "string") return err;
-    const code = err.code || err.error || err.error_code || "";
-    const msg = err.message || err.detail || err.error_message || "";
-    const next =
-      err.nextStep ||
-      err.next_step ||
-      (err.payload && (err.payload.nextStep || err.payload.next_step)) ||
-      (err.data && (err.data.nextStep || err.data.next_step)) ||
-      "";
+    const u = unwrapApiError(err);
+    const code = u.code || "";
+    const msg = u.message || "";
+    const next = u.nextStep || "";
     const map = {
       PROFILE_IN_USE: "该账号已在保活中，请先停止再启动",
       VALIDATION: "填写有误，请检查账号、密码或配置",
@@ -110,6 +135,9 @@
     let base = "";
     if (code && map[code]) {
       base = map[code];
+      if (msg && code === "AUTH_FAILED" && /4119|账号|密码|短验|扫码/.test(msg)) {
+        base = "账号或密码错误（上游已拒绝）";
+      }
     } else if (msg && typeof msg === "string") {
       if (/PROFILE_IN_USE/i.test(msg)) base = map.PROFILE_IN_USE;
       else if (/LIVE_DISABLED/i.test(msg)) base = map.LIVE_DISABLED;
@@ -163,6 +191,7 @@
       }
     }
     if (!res.ok) {
+      const u = unwrapApiError(data || {});
       const err = new Error(
         humanError(
           data || {},
@@ -170,12 +199,8 @@
         )
       );
       err.status = res.status;
-      err.code = (data && (data.code || data.error || data.error_code)) || "";
-      err.nextStep =
-        data &&
-        (data.nextStep ||
-          data.next_step ||
-          (data.data && (data.data.nextStep || data.data.next_step)));
+      err.code = u.code || "";
+      err.nextStep = u.nextStep || "";
       err.payload = data;
       err.data = data;
       err.message = humanError(err, err.message);
