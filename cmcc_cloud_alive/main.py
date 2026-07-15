@@ -238,7 +238,11 @@ def cmd_login(args):
     if not password:
         raise core.CmccError("password is required")
     # 默认保存密码到 ~/.cmcc-cloud-alive/state.json，便于 token 失效时自动重登。
-    _password_login_with_retry(username, password, args.state, save_password=(args.save_password or True))
+    _password_login_with_retry(
+        username, password, args.state,
+        save_password=(args.save_password or True),
+        sub_account=args.sub_account,
+    )
 
 
 def cmd_set_profile(args):
@@ -335,19 +339,26 @@ def _interactive_prompt(message, default=None):
     return raw or (default if default is not None else "")
 
 
-def _password_login_with_retry(username, password, state_path, save_password=False):
+def _password_login_with_retry(username, password, state_path, save_password=False, sub_account=False):
     """Login with up to ``max_attempts`` retries on wrong password.
 
     Always exits via a clean :class:`core.CmccError` (caught by ``main``) so the
     user never sees a raw traceback when credentials are wrong or input is
     cancelled (EOF / Ctrl-C).
+
+    Args:
+        sub_account: if True, use sub_password_login instead of password_login.
     """
     max_attempts = 3
     current = password
     for attempt in range(1, max_attempts + 1):
         try:
-            auth.password_login(username, current, state_path,
-                                save_password=save_password if attempt == 1 else False)
+            if sub_account:
+                auth.sub_password_login(username, current, state_path,
+                                       save_password=save_password if attempt == 1 else False)
+            else:
+                auth.password_login(username, current, state_path,
+                                   save_password=save_password if attempt == 1 else False)
             return current
         except core.CmccError as err:
             if save_password:
@@ -379,6 +390,13 @@ def _interactive_login(args):
     state = core.load_state(args)
     cached = state.get("username") or ""
     username = args.username or ""
+    # Determine if sub-account from CLI flag or cached state (for existing profile).
+    sub_account = getattr(args, "sub_account", False)
+    if not sub_account and cached:
+        # Use cached login mode for existing profiles.
+        from . import auth as _auth_module
+        if _auth_module._state_is_sub_account(state):
+            sub_account = True
     if not username:
         username = _choose_username_with_cached(cached, _interactive_prompt)
     if not username:
@@ -393,7 +411,11 @@ def _interactive_login(args):
             raise core.CmccError("已取消密码输入")
     if not password:
         raise core.CmccError("password is required")
-    password = _password_login_with_retry(username, password, args.state, save_password=True)
+    password = _password_login_with_retry(
+        username, password, args.state,
+        save_password=True,
+        sub_account=sub_account,
+    )
     return username, password
 
 
@@ -2051,6 +2073,11 @@ def build_parser():
     p.add_argument("username", nargs="?", help="account; prompts when omitted")
     p.add_argument("password", nargs="?", help="optional; omit to avoid plaintext shell history")
     p.add_argument(
+        "--sub-account",
+        action="store_true",
+        help="以子账号登录（走 /login/home/namePwdLogin 接口）",
+    )
+    p.add_argument(
         "--save-password",
         action="store_true",
         help="兼容参数；当前默认保存到 ~/.cmcc-cloud-alive/state.json 以便 token 失效自动重登",
@@ -2139,6 +2166,11 @@ def build_parser():
     p.add_argument("user_service_id", nargs="?")
     p.add_argument("--username", default=None, help="account phone number; prompt if omitted")
     p.add_argument("--password", default=None, help="password; prompt hidden if omitted (never logged)")
+    p.add_argument(
+        "--sub-account",
+        action="store_true",
+        help="以子账号登录（走 /login/home/namePwdLogin 接口）",
+    )
     p.add_argument("--duration", type=int, default=0, help="run seconds; 0 means run forever")
     p.add_argument("--heartbeat-interval", type=int, default=300, help="keepalive round interval seconds")
     p.add_argument("--status-interval", type=int, default=60, help="状态展示间隔秒数；只打印，不触发开机")
@@ -2473,6 +2505,11 @@ def build_parser():
     ip.add_argument("user_service_id", nargs="?")
     ip.add_argument("--username", default=None, help="account phone number; prompt if omitted")
     ip.add_argument("--password", default=None, help="password; prompt hidden if omitted (never logged)")
+    ip.add_argument(
+        "--sub-account",
+        action="store_true",
+        help="以子账号登录（走 /login/home/namePwdLogin 接口）",
+    )
     ip.add_argument("--duration", type=int, default=0, help="run seconds; 0 means run forever")
     ip.add_argument("--heartbeat-interval", type=int, default=300, help="keepalive round interval seconds")
     ip.add_argument("--status-interval", type=int, default=60, help="status print interval seconds")
