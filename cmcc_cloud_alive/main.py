@@ -479,53 +479,58 @@ def cmd_interactive(args):
 
     # 首次进入任务阶段：全局只执行这 1 次状态检测/开机逻辑。
     # 后续循环只做保活；状态打印仅展示，不联动开机。
-    # 注意：SCG 路线不需要 CAG 开机（getConnectInfo 会自动触发开机），
-    #       只有 ZTE/CAG 路线才需要调用 cag_boot.ensure_running。
+    # 关键：SCG 路线必须建立真实 SPICE 连接才能防24h关机，
+    #       HTTP API 保活（desktop_keepalive）无法维持平台会话。
     print("\n[首次开机检查] 正在检测云电脑状态……", flush=True)
+    spu_code = ""
+    is_scg = False
     try:
         first_status = cloud.status(target, state_path)
         first_status_text = first_status.get("vmStatusShow") or first_status.get("vmStatus")
-        print(f"[首次开机检查] 当前状态：{first_status_text} running={cloud.is_running(first_status)}", flush=True)
+        spu_code = str(first_status.get("spuCode") or "")
+        is_scg = spu_code == "sc-cloud-pc"
+        print(f"[首次开机检查] 当前状态：{first_status_text} running={cloud.is_running(first_status)} 路线={'SCG' if is_scg else 'ZTE/CAG'}", flush=True)
         report["initialPowerStatus"] = first_status
         if not cloud.is_running(first_status):
-            # 判断路线：spuCode=sc-cloud-pc 为 SCG 路线，其余为 ZTE/CAG
-            spu_code = str(first_status.get("spuCode") or "")
-            is_scg = spu_code == "sc-cloud-pc"
             if is_scg:
-                print("[首次开机检查] SCG 路线，正在获取 SCG 凭证……", flush=True)
+                print("[首次开机检查] SCG 路线未运行，正在触发开机……", flush=True)
                 try:
-                    from . import product_router, scg_route
                     ns_args = core.argparse.Namespace(state=state_path, user_service_id=target)
-                    auth = core.get_firm_auth(ns_args)
-                    sc_auth_code = product_router.extract_sc_auth_code(auth) or ""
+                    auth_data = core.get_firm_auth(ns_args)
+                    sc_auth_code = product_router.extract_sc_auth_code(auth_data) or ""
                     if not sc_auth_code:
                         raise RuntimeError("firmAuth 中未找到 scAuthCode，可能需要重新登录")
-                    vm_id = str(first_status.get("vmId") or "")
-                    state_data = core.load_state(args)
-                    cfg = core.client_config(state_data)
-                    device_id = core.profile_device_id(state_data, cfg)
-                    info = scg_route.get_connect_info(sc_auth_code, vm_id, device_id=device_id)
-                    vm_status = info.get("connectInfo", {}).get("vmStatus")
-                    running_after = cloud.is_running(cloud.status(target, state_path))
-                    if running_after or vm_status == 0:
-                        print(f"[首次开机检查] SCG 开机成功！vmStatus={vm_status}", flush=True)
-                    else:
-                        print(f"[首次开机检查] SCG getConnectInfo 已调用，可能正在启动中（vmStatus={vm_status}），继续进入保活循环。", flush=True)
+                    cfg = core.client_config(core.load_state(args))
+                    device_id = core.profile_device_id(core.load_state(args), cfg)
+                    vm_id_str = str(auth_data.get("vmId") or "")
+                    info = scg_route.get_connect_info(sc_auth_code, vm_id_str, device_id=device_id, timeout=15)
+                    print(f"[首次开机检查] SCG getConnectInfo 完成，vmStatus={info.get('connectInfo', {}).get('vmStatus')}", flush=True)
                 except Exception as scg_err:
-                    print(f"[首次开机检查] SCG 开机异常：{scg_err}，继续进入保活循环。", flush=True)
+                    print(f"[首次开机检查] SCG 开机调用异常（可能正在启动）：{scg_err}", flush=True)
             else:
-                print(f"[首次开机检查] 云电脑未运行，自动开机（只执行这一次，无需二次确认）……", flush=True)
+                print(f"[首次开机检查] 云电脑未运行，自动开机（ZTE/CAG）……", flush=True)
                 boot_result = cag_boot.ensure_running(target, state_path, args.boot_wait, args.boot_timeout)
                 report["initialBoot"] = boot_result
-                print("[首次开机检查] 开机流程完成，马上进入第一轮保活。", flush=True)
-        else:
-            print("[首次开机检查] 云电脑已运行，跳过开机，马上进入第一轮保活。", flush=True)
+                print("[首次开机检查] 开机流程完成。", flush=True)
     except Exception as err:
         report["initialBootError"] = str(err)
         print(f"[首次开机检查] 首次状态检测/开机失败，任务终止，不进入保活：{err}", flush=True)
         _write_report(report, args.report_file)
         return
 
+    # SCG 路线：切换到 product_keepalive（内部有 forever + SCG SPICE 循环，防24h关机）
+    if is_scg:
+        print("[首次开机检查] SCG 路线 → 切换到 product_keepalive（建立真实 SPICE 连接防24h关机）……", flush=True)
+        _emit_product_report(args, report)
+        product_args = core.argparse.Namespace(
+            state=state_path, user_service_id=target, duration=0, forever=True,
+            boot_wait=args.boot_wait, boot_timeout=args.boot_timeout,
+            scg_mode=getattr(args, 'scg_mode', None) or 'spice',
+            vm_id=None,
+        )
+        return cmd_product_keepalive(product_args)
+
+    print("[首次开机检查] 云电脑已运行，马上进入第一轮保活。", flush=True)
     heartbeat_interval = max(1, int(args.heartbeat_interval))
     status_interval = max(1, int(args.status_interval))
     run_seconds = int(args.duration or 0)
