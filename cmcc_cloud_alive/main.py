@@ -335,7 +335,7 @@ def _interactive_prompt(message, default=None):
     return raw or (default if default is not None else "")
 
 
-def _password_login_with_retry(username, password, state_path, save_password=False):
+def _password_login_with_retry(username, password, state_path, save_password=False, sub_account=False):
     """Login with up to ``max_attempts`` retries on wrong password.
 
     Always exits via a clean :class:`core.CmccError` (caught by ``main``) so the
@@ -346,8 +346,12 @@ def _password_login_with_retry(username, password, state_path, save_password=Fal
     current = password
     for attempt in range(1, max_attempts + 1):
         try:
-            auth.password_login(username, current, state_path,
-                                save_password=save_password if attempt == 1 else False)
+            if sub_account:
+                auth.sub_password_login(username, current, state_path,
+                                       save_password=save_password if attempt == 1 else False)
+            else:
+                auth.password_login(username, current, state_path,
+                                    save_password=save_password if attempt == 1 else False)
             return current
         except core.CmccError as err:
             if save_password:
@@ -377,6 +381,10 @@ def _interactive_sleep(seconds, started, run_seconds):
 
 def _interactive_login(args):
     state = core.load_state(args)
+    # 如果已经登录过，直接复用，节省一次 API 调用
+    if state.get("isLogined"):
+        print(f"[登录] 已存在有效登录态，跳过登录 (userId={state.get('userId', '')})。", flush=True)
+        return state.get("username") or args.username or "", "<already-logged-in>"
     cached = state.get("username") or ""
     username = args.username or ""
     if not username:
@@ -393,7 +401,8 @@ def _interactive_login(args):
             raise core.CmccError("已取消密码输入")
     if not password:
         raise core.CmccError("password is required")
-    password = _password_login_with_retry(username, password, args.state, save_password=True)
+    sub_account = getattr(args, "sub_account", False)
+    _password_login_with_retry(username, password, args.state, save_password=True, sub_account=sub_account)
     return username, password
 
 
@@ -446,6 +455,7 @@ def cmd_interactive(args):
     args_ns.password = args.password
     args_ns.user_service_id = args.user_service_id
     args_ns.non_interactive = args.non_interactive
+    args_ns.sub_account = getattr(args, "sub_account", False)
 
     started = time.time()
     report = {
@@ -469,6 +479,8 @@ def cmd_interactive(args):
 
     # 首次进入任务阶段：全局只执行这 1 次状态检测/开机逻辑。
     # 后续循环只做保活；状态打印仅展示，不联动开机。
+    # 注意：SCG 路线不需要 CAG 开机（getConnectInfo 会自动触发开机），
+    #       只有 ZTE/CAG 路线才需要调用 cag_boot.ensure_running。
     print("\n[首次开机检查] 正在检测云电脑状态……", flush=True)
     try:
         first_status = cloud.status(target, state_path)
@@ -476,10 +488,36 @@ def cmd_interactive(args):
         print(f"[首次开机检查] 当前状态：{first_status_text} running={cloud.is_running(first_status)}", flush=True)
         report["initialPowerStatus"] = first_status
         if not cloud.is_running(first_status):
-            print("[首次开机检查] 云电脑未运行，自动开机（只执行这一次，无需二次确认）……", flush=True)
-            boot_result = cag_boot.ensure_running(target, state_path, args.boot_wait, args.boot_timeout)
-            report["initialBoot"] = boot_result
-            print("[首次开机检查] 开机流程完成，马上进入第一轮保活。", flush=True)
+            # 判断路线：spuCode=sc-cloud-pc 为 SCG 路线，其余为 ZTE/CAG
+            spu_code = str(first_status.get("spuCode") or "")
+            is_scg = spu_code == "sc-cloud-pc"
+            if is_scg:
+                print("[首次开机检查] SCG 路线，正在获取 SCG 凭证……", flush=True)
+                try:
+                    from . import product_router, scg_route
+                    ns_args = core.argparse.Namespace(state=state_path, user_service_id=target)
+                    auth = core.get_firm_auth(ns_args)
+                    sc_auth_code = product_router.extract_sc_auth_code(auth) or ""
+                    if not sc_auth_code:
+                        raise RuntimeError("firmAuth 中未找到 scAuthCode，可能需要重新登录")
+                    vm_id = str(first_status.get("vmId") or "")
+                    state_data = core.load_state(args)
+                    cfg = core.client_config(state_data)
+                    device_id = core.profile_device_id(state_data, cfg)
+                    info = scg_route.get_connect_info(sc_auth_code, vm_id, device_id=device_id)
+                    vm_status = info.get("connectInfo", {}).get("vmStatus")
+                    running_after = cloud.is_running(cloud.status(target, state_path))
+                    if running_after or vm_status == 0:
+                        print(f"[首次开机检查] SCG 开机成功！vmStatus={vm_status}", flush=True)
+                    else:
+                        print(f"[首次开机检查] SCG getConnectInfo 已调用，可能正在启动中（vmStatus={vm_status}），继续进入保活循环。", flush=True)
+                except Exception as scg_err:
+                    print(f"[首次开机检查] SCG 开机异常：{scg_err}，继续进入保活循环。", flush=True)
+            else:
+                print(f"[首次开机检查] 云电脑未运行，自动开机（只执行这一次，无需二次确认）……", flush=True)
+                boot_result = cag_boot.ensure_running(target, state_path, args.boot_wait, args.boot_timeout)
+                report["initialBoot"] = boot_result
+                print("[首次开机检查] 开机流程完成，马上进入第一轮保活。", flush=True)
         else:
             print("[首次开机检查] 云电脑已运行，跳过开机，马上进入第一轮保活。", flush=True)
     except Exception as err:
@@ -2146,6 +2184,7 @@ def build_parser():
     p.add_argument("--boot-timeout", type=int, default=300, help="首次自动开机最长等待秒数")
     p.add_argument("--report-file", default=None, help="write JSON report to this path")
     p.add_argument("--non-interactive", action="store_true", help="skip prompts; auto-select first target")
+    p.add_argument("--sub-account", action="store_true", help="以子账号登录（走 /login/home/namePwdLogin 接口的 subAccount 字段）")
     p.add_argument("--probe", action="store_true")
     p.add_argument("--point", action="store_true")
     p.add_argument("--connect-events", action="store_true")
@@ -2482,6 +2521,7 @@ def build_parser():
     ip.add_argument("--point", action="store_true")
     ip.add_argument("--connect-events", action="store_true")
     ip.add_argument("--no-firm-auth", action="store_true")
+    ip.add_argument("--sub-account", action="store_true", help="以子账号登录（走 /login/home/namePwdLogin 接口的 subAccount 字段）")
     ip.set_defaults(func=cmd_interactive)
     p.add_argument("--duration", type=int, default=None, help="hold each SCG Python keepalive round N seconds (default 60)")
     p.add_argument("--forever", action="store_true", help="repeat the SCG Python keepalive loop until interrupted")

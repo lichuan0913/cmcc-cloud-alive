@@ -67,3 +67,5 @@ scripts/f_*.py
 scripts/f60_*.py
 scripts/*_harvest_*.py
 scripts/e1_*.sh
+check_alert.py
+monitor.py
