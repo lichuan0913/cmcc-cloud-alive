@@ -1,0 +1,62 @@
+# cmcc-cloud-alive WebUI compose
+# Usage (from repo root):
+#   docker compose -f docker/docker-compose.yml up -d --build
+# CLI same image:
+#   docker compose -f docker/docker-compose.yml run --rm cmcc-webui cmcc-cloud-alive --help
+#
+# Host port: default 28080 (avoid busy 8080). Override:
+#   CMCC_HOST_PORT=29090 docker compose -f docker/docker-compose.yml up -d
+#
+# Env:
+#   CMCC_HOST_PORT     host bind port (default 28080 → container 8080)
+#   CMCC_WEBUI_TOKEN   optional Bearer gate; set in host .env only — never commit
+#   CMCC_ALIVE_HOME    home prefix inside container (/data); durable root is
+#                      $CMCC_ALIVE_HOME/.cmcc-cloud-alive
+#
+# Jobs default to live (real keepalive). No LIVE gate env is required.
+services:
+  cmcc-webui:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: cmcc-cloud-alive:local
+    container_name: cmcc-webui
+    user: "10001:10001"
+    init: true
+    ports:
+      # bind loopback only; host port overridable via CMCC_HOST_PORT
+      - "127.0.0.1:${CMCC_HOST_PORT:-28080}:8080"
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      HOME: /data
+      CMCC_ALIVE_HOME: /data
+      CMCC_WEBUI_HOST: "0.0.0.0"
+      CMCC_WEBUI_PORT: "8080"
+      # CMCC_WEBUI_TOKEN: set in host .env — never commit
+      # Do not inject HTTP(S)_PROXY — container must reach CMCC APIs directly.
+    volumes:
+      - cmcc_data:/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health', timeout=3).read()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    mem_limit: 1536m
+    cpus: 2.0
+
+volumes:
+  cmcc_data:

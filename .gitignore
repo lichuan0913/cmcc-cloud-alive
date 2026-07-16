@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+*.egg-info/
+
+# Secrets / local env (never commit)
+docker/.env
+**/.env
+!.env.example
+
+# Runtime state / credentials / logs
+.runtime/
+.cmcc-cloud-alive/
+longtest_logs/
+*.log
+*.pcap
+*.pcapng
+*.json.tmp
+cloud_pc*.json
+*_state.json
+**/profiles/
+**/locks/
+**/jobs/
+**/run/
+
+# Tooling / build
+.pytest_cache/
+.mypy_cache/
+.coverage
+dist/
+build/
+
+# Local backups created during regeneration
+_backup_before_selfcontained_*/
+*.bak
+*.bak_*
+**/.bak_*/
+
+# Blacklist: local dev/tooling / hive scratch (never commit)
+.agent-workbench/
+.agent/
+.agent_protocol_runner_checkpoint.txt
+docs/
+tests/
+scg_go/
+research/
+notes/
+progress/
+reports/
+master_notes/
+hive_*/
+hive_t6/
+hive_scg_keepalive/
+plan_scg_protocol/
+longtest_runner.py
+# Root static/ is a local dev mirror; package static lives under cmcc_cloud_alive/webui/static/
+/static/
+# Docker hive scratch static (not used by image build)
+docker/hive_static/
+
+scripts/e_*.py
+scripts/f_*.py
+scripts/f60_*.py
+scripts/*_harvest_*.py
+scripts/e1_*.sh

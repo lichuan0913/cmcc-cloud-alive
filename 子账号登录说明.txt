@@ -1,0 +1,212 @@
+# 移动云电脑子账号登录 - 项目记录
+
+> 创建时间：2026-07-16
+> 最后更新：2026-07-16 01:41
+
+---
+
+## 一、项目基本信息
+
+**仓库地址**：https://github.com/lichuan0913/cmcc-cloud-alive
+**Fork 来源**：https://github.com/1936-zero/cmcc-cloud-alive
+**作者**：川 (lichuan0913)
+**Python 版本**：>= 3.10
+**项目路径**：`/workspace/cmcc-cloud-alive`
+
+---
+
+## 二、子账号登录功能说明
+
+### 2.1 什么是子账号登录
+
+移动云电脑有两种账号类型：
+
+| 类型 | 说明 | 登录接口 |
+|------|------|---------|
+| 主账号 | 家庭主号 / 手机号 | `/login/home/namePwdLogin` (account字段) |
+| 子账号 | 主号下开通的子账号名 | `/login/home/namePwdLogin` (subAccount字段) |
+
+### 2.2 核心实现代码
+
+**文件**：`cmcc_cloud_alive/main.py`
+
+**改动 1**：login 子命令新增 `--sub-account` 参数
+```python
+p.add_argument(
+    "--sub-account",
+    action="store_true",
+    help="以子账号登录（走 /login/home/namePwdLogin 接口）",
+)
+```
+
+**改动 2**：interactive 子命令新增 `--sub-account` 参数（两个地方）
+- 顶层 `interactive` 子命令
+- `product-keepalive interactive` 子命令
+
+**改动 3**：`_password_login_with_retry()` 函数
+```python
+def _password_login_with_retry(username, password, state_path, save_password=False, sub_account=False):
+    # ...
+    if sub_account:
+        auth.sub_password_login(username, current, state_path, save_password=...)
+    else:
+        auth.password_login(username, current, state_path, save_password=...)
+```
+
+**改动 4**：`_interactive_login()` 函数
+- 从 CLI 参数获取 `sub_account` 标志
+- 自动识别缓存 state 中的登录类型
+
+---
+
+## 三、命令使用方法
+
+### 3.1 子账号登录（交互式）
+```bash
+CMCC_ALIVE_STATE=/root/.cmcc-cloud-alive/账号名.json \
+python3 -m cmcc_cloud_alive login --sub-account 子账号名
+# 程序会提示输入密码（不回显）
+```
+
+### 3.2 子账号登录（密码直接传）
+```bash
+CMCC_ALIVE_STATE=/root/.cmcc-cloud-alive/账号名.json \
+python3 -m cmcc_cloud_alive login --sub-account 子账号名 密码
+```
+
+### 3.3 子账号一键保活（永久运行）
+```bash
+CMCC_ALIVE_STATE=/root/.cmcc-cloud-alive/账号名.json \
+python3 -m cmcc_cloud_alive interactive \
+  --sub-account --username 子账号名 --password *** \
+  --duration 0 --non-interactive
+```
+
+### 3.4 查看保活状态
+```bash
+cd /workspace/cmcc-cloud-alive && python3 monitor.py
+```
+
+---
+
+## 四、systemd 服务管理
+
+### 4.1 服务文件
+
+| 服务名 | 配置文件 | 对应账号 | 状态文件 |
+|--------|---------|---------|---------|
+| cmcc-ts2a6e.service | /etc/systemd/system/cmcc-ts2a6e.service | ts2a6e | /root/.cmcc-cloud-alive/ts2a6e.json |
+| cmcc-weisy311.service | /etc/systemd/system/cmcc-weisy311.service | weisy311 | /root/.cmcc-cloud-alive/weisy311.json |
+
+### 4.2 常用管理命令
+
+```bash
+# 查看状态
+systemctl status cmcc-ts2a6e.service
+systemctl status cmcc-weisy311.service
+
+# 重启服务
+systemctl restart cmcc-ts2a6e.service
+systemctl restart cmcc-weisy311.service
+
+# 停止服务
+systemctl stop cmcc-ts2a6e.service
+systemctl stop cmcc-weisy311.service
+
+# 查看日志
+journalctl -u cmcc-ts2a6e.service -f
+journalctl -u cmcc-weisy311.service -f
+
+# 开机是否自启
+systemctl is-enabled cmcc-ts2a6e.service
+systemctl is-enabled cmcc-weisy311.service
+```
+
+### 4.3 开机自启状态
+✅ 已配置开机自启（enabled）
+
+### 4.4 自动重启
+✅ 已配置失败自动重启（Restart=always, RestartSec=10）
+
+---
+
+## 五、监控告警
+
+### 5.1 监控脚本
+- 手动检查：`python3 /workspace/cmcc-cloud-alive/monitor.py`
+- 告警检查：`python3 /workspace/cmcc-cloud-alive/check_alert.py`（仅输出问题）
+
+### 5.2 定时检查
+- **频率**：每 30 分钟自动检查一次
+- **告警方式**：有问题时直接发消息到元宝私信
+- **Cron Job ID**：3b8687b0-d802-4092-9871-a6478e740be7
+
+### 5.3 告警触发条件
+- systemd 服务停止
+- 云电脑已关机
+- 检查脚本执行失败
+
+---
+
+## 六、已测试账号
+
+| 账号 | 密码 | 类型 | 状态 | 云电脑名称 | 云电脑状态 |
+|------|------|------|------|-----------|-----------|
+| ts2a6e | Lc95155994@ | 子账号 | ✅ 已登录 | 2C4G版云电脑月包 | 运行中 |
+| weisy311 | Lc95155994 | 子账号 | ✅ 已登录 | 家庭云电脑月包(高级版) | 运行中 |
+
+---
+
+## 七、环境信息
+
+**运行环境**：Docker 容器内（hostname: ed4eae63e5aa）
+**操作系统**：Ubuntu 24.04.4 LTS
+**Python**：3.12
+**项目路径**：`/workspace/cmcc-cloud-alive`
+
+**依赖包**：cryptography >= 3.4
+
+**登录状态文件**：
+- ts2a6e: `/root/.cmcc-cloud-alive/ts2a6e.json`
+- weisy311: `/root/.cmcc-cloud-alive/weisy311.json`
+
+**日志文件**：
+- ts2a6e: `/tmp/cmcc-ts.log`
+- weisy311: `/tmp/cmcc-weisy.log`
+
+---
+
+## 八、常见问题
+
+### Q1: 子账号登录失败 code=4140
+**原因**：子账号不存在、密码错误、或云电脑已被收回
+**解决**：确认账号密码正确，或联系管理员
+
+### Q2: 保活进程退出了
+**原因**：意外崩溃或内存不足
+**解决**：systemd 会自动重启（Restart=always）；若频繁重启检查 journalctl 日志
+
+### Q3: 两个账号同时登录会互相覆盖？
+**原因**：共用 state.json 导致
+**解决**：已分开，每个账号独立 state 文件（见上方 4.1 表格）
+
+### Q4: 云电脑状态显示"已关机"
+**原因**：官方24小时后自动关机，或手动关机
+**解决**：程序首次检测到关机会自动开机一次；若持续关机可能是账号问题
+
+---
+
+## 九、安全提醒
+
+以下文件包含敏感信息，**不要上传到 GitHub**：
+- `/root/.cmcc-cloud-alive/*.json`（会话缓存，含 token 和密码）
+- `*.log`（运行日志）
+- `check_alert.py`（包含密码）
+
+---
+
+## 十、相关链接
+
+- 原项目：https://github.com/1936-zero/cmcc-cloud-alive
+- Fork 仓库：https://github.com/lichuan0913/cmcc-cloud-alive
+- GitHub Token：ghp_fQ…05BA（仅供本容器使用）

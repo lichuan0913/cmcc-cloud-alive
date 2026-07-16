@@ -1,0 +1,46 @@
+# VCS / IDE
+.git
+.gitignore
+.agent
+.agent-workbench
+.agent_protocol_runner_checkpoint.txt
+
+# Python junk
+.venv
+venv
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.mypy_cache
+.coverage
+dist
+build
+*.egg-info
+
+# Secrets / runtime / local state — NEVER bake
+.env
+.env.*
+!.env.example
+.runtime
+longtest_logs
+**/*.log
+**/*.pcap
+**/*.pcapng
+**/*_state.json
+cloud_pc*.json
+**/*.json.tmp
+
+# Hive / research / bulky local trees
+reports
+hive_*
+docs
+notes
+progress
+research
+scg_go
+plan_scg_protocol
+tests
+longtest_runner.py
+package.json
+scripts/e_*.py
+scripts/f_*.py
